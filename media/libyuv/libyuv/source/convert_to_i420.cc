@@ -44,6 +44,89 @@ int ConvertToI420(const uint8_t* sample,
                   int crop_height,
                   enum RotationMode rotation,
                   uint32_t fourcc) {
+  uint32_t format = CanonicalFourCC(fourcc);
+  int src_stride;
+
+  switch (format) {
+    case FOURCC_YUY2:
+    case FOURCC_UYVY:
+    case FOURCC_RGBP:
+    case FOURCC_RGBO:
+    case FOURCC_R444:
+      src_stride = src_width * 2;
+      break;
+    case FOURCC_24BG:
+    case FOURCC_RAW:
+      src_stride = src_width * 3;
+      break;
+    case FOURCC_ARGB:
+    case FOURCC_BGRA:
+    case FOURCC_ABGR:
+    case FOURCC_RGBA:
+      src_stride = src_width * 4;
+      break;
+    case FOURCC_I400:
+    case FOURCC_NV12:
+    case FOURCC_NV21:
+    case FOURCC_I420:
+    case FOURCC_YV12:
+    case FOURCC_I422:
+    case FOURCC_YV16:
+    case FOURCC_I444:
+    case FOURCC_YV24:
+      src_stride = src_width;
+      break;
+#ifdef HAVE_JPEG
+    case FOURCC_MJPG:
+      src_stride = 0;
+      break;
+#endif
+    default:
+      return -1;
+  }
+
+  return ConvertToI420WithSrcStride(sample,
+                                    sample_size,
+                                    dst_y,
+                                    dst_stride_y,
+                                    dst_u,
+                                    dst_stride_u,
+                                    dst_v,
+                                    dst_stride_v,
+                                    crop_x,
+                                    crop_y,
+                                    src_width,
+                                    src_stride,
+                                    src_height,
+                                    crop_width,
+                                    crop_height,
+                                    rotation,
+                                    fourcc);
+}
+
+// Convert camera sample to I420 with cropping, rotation and vertical flip.
+// src_width is used for source stride computation
+// src_height is used to compute location of planes, and indicate inversion
+// sample_size is measured in bytes and is the size of the frame.
+//   With MJPEG it is the compressed size of the frame.
+LIBYUV_API
+int ConvertToI420WithSrcStride(const uint8_t* sample,
+                               size_t sample_size,
+                               uint8_t* dst_y,
+                               int dst_stride_y,
+                               uint8_t* dst_u,
+                               int dst_stride_u,
+                               uint8_t* dst_v,
+                               int dst_stride_v,
+                               int crop_x,
+                               int crop_y,
+                               int src_width,
+                               int src_stride,
+                               int src_height,
+                               int crop_width,
+                               int crop_height,
+                               enum RotationMode rotation,
+                               uint32_t fourcc) {
   if (src_height == INT_MIN || crop_height == INT_MIN) {
     return -1;
   }
@@ -76,7 +159,7 @@ int ConvertToI420(const uint8_t* sample,
   uint8_t* rotate_buffer = NULL;
   const int inv_crop_height =
       (src_height < 0) ? -abs_crop_height : abs_crop_height;
-  int aligned_src_width = (src_width + 1) & ~1;
+  int aligned_src_stride = (src_stride + 1) & ~1;
 
   // One pass rotation is available for some formats. For the rest, convert
   // to I420 (with optional vertical flipping) into a temporary I420 buffer,
@@ -109,8 +192,8 @@ int ConvertToI420(const uint8_t* sample,
       uint8_t* v = (crop_x & 1) ? dst_u : dst_v;
       int stride_u = (crop_x & 1) ? dst_stride_v : dst_stride_u;
       int stride_v = (crop_x & 1) ? dst_stride_u : dst_stride_v;
-      src = sample + ((ptrdiff_t)aligned_src_width * crop_y + crop_x) * 2;
-      r = YUY2ToI420(src, aligned_src_width * 2, dst_y, dst_stride_y, u,
+      src = sample + ((ptrdiff_t)aligned_src_stride * crop_y + crop_x);
+      r = YUY2ToI420(src, aligned_src_stride, dst_y, dst_stride_y, u,
                      stride_u, v, stride_v, crop_width, inv_crop_height);
       break;
     }
@@ -119,156 +202,156 @@ int ConvertToI420(const uint8_t* sample,
       uint8_t* v = (crop_x & 1) ? dst_u : dst_v;
       int stride_u = (crop_x & 1) ? dst_stride_v : dst_stride_u;
       int stride_v = (crop_x & 1) ? dst_stride_u : dst_stride_v;
-      src = sample + ((ptrdiff_t)aligned_src_width * crop_y + crop_x) * 2;
-      r = UYVYToI420(src, aligned_src_width * 2, dst_y, dst_stride_y, u,
+      src = sample + ((ptrdiff_t)aligned_src_stride * crop_y + crop_x);
+      r = UYVYToI420(src, aligned_src_stride, dst_y, dst_stride_y, u,
                      stride_u, v, stride_v, crop_width, inv_crop_height);
       break;
     }
     case FOURCC_RGBP:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 2;
-      r = RGB565ToI420(src, src_width * 2, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = RGB565ToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                        dst_stride_u, dst_v, dst_stride_v, crop_width,
                        inv_crop_height);
       break;
     case FOURCC_RGBO:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 2;
-      r = ARGB1555ToI420(src, src_width * 2, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = ARGB1555ToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                          dst_stride_u, dst_v, dst_stride_v, crop_width,
                          inv_crop_height);
       break;
     case FOURCC_R444:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 2;
-      r = ARGB4444ToI420(src, src_width * 2, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = ARGB4444ToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                          dst_stride_u, dst_v, dst_stride_v, crop_width,
                          inv_crop_height);
       break;
     case FOURCC_24BG:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 3;
-      r = RGB24ToI420(src, src_width * 3, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = RGB24ToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                       dst_stride_u, dst_v, dst_stride_v, crop_width,
                       inv_crop_height);
       break;
     case FOURCC_RAW:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 3;
-      r = RAWToI420(src, src_width * 3, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = RAWToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                     dst_stride_u, dst_v, dst_stride_v, crop_width,
                     inv_crop_height);
       break;
     case FOURCC_ARGB:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 4;
-      r = ARGBToI420(src, src_width * 4, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = ARGBToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                      dst_stride_u, dst_v, dst_stride_v, crop_width,
                      inv_crop_height);
       break;
     case FOURCC_BGRA:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 4;
-      r = BGRAToI420(src, src_width * 4, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = BGRAToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                      dst_stride_u, dst_v, dst_stride_v, crop_width,
                      inv_crop_height);
       break;
     case FOURCC_ABGR:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 4;
-      r = ABGRToI420(src, src_width * 4, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = ABGRToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                      dst_stride_u, dst_v, dst_stride_v, crop_width,
                      inv_crop_height);
       break;
     case FOURCC_RGBA:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x) * 4;
-      r = RGBAToI420(src, src_width * 4, dst_y, dst_stride_y, dst_u,
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = RGBAToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
                      dst_stride_u, dst_v, dst_stride_v, crop_width,
                      inv_crop_height);
       break;
     // TODO(fbarchard): Add AR30 and AB30
     case FOURCC_I400:
-      src = sample + (ptrdiff_t)src_width * crop_y + crop_x;
-      r = I400ToI420(src, src_width, dst_y, dst_stride_y, dst_u, dst_stride_u,
+      src = sample + (ptrdiff_t)src_stride * crop_y + crop_x;
+      r = I400ToI420(src, src_stride, dst_y, dst_stride_y, dst_u, dst_stride_u,
                      dst_v, dst_stride_v, crop_width, inv_crop_height);
       break;
     // Biplanar formats
     case FOURCC_NV12:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x);
-      src_uv = sample + ((ptrdiff_t)src_width * abs_src_height) +
-               ((ptrdiff_t)(crop_y / 2) * aligned_src_width) +
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      src_uv = sample + ((ptrdiff_t)src_stride * abs_src_height) +
+               ((ptrdiff_t)(crop_y / 2) * aligned_src_stride) +
                ((crop_x / 2) * 2);
-      r = NV12ToI420Rotate(src, src_width, src_uv, aligned_src_width, dst_y,
+      r = NV12ToI420Rotate(src, src_stride, src_uv, aligned_src_stride, dst_y,
                            dst_stride_y, dst_u, dst_stride_u, dst_v,
                            dst_stride_v, crop_width, inv_crop_height, rotation);
       break;
     case FOURCC_NV21:
-      src = sample + ((ptrdiff_t)src_width * crop_y + crop_x);
-      src_uv = sample + ((ptrdiff_t)src_width * abs_src_height) +
-               ((ptrdiff_t)(crop_y / 2) * aligned_src_width) +
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      src_uv = sample + ((ptrdiff_t)src_stride * abs_src_height) +
+               ((ptrdiff_t)(crop_y / 2) * aligned_src_stride) +
                ((crop_x / 2) * 2);
       // Call NV12 but with dst_u and dst_v parameters swapped.
-      r = NV12ToI420Rotate(src, src_width, src_uv, aligned_src_width, dst_y,
+      r = NV12ToI420Rotate(src, src_stride, src_uv, aligned_src_stride, dst_y,
                            dst_stride_y, dst_v, dst_stride_v, dst_u,
                            dst_stride_u, crop_width, inv_crop_height, rotation);
       break;
     // Triplanar formats
     case FOURCC_I420:
     case FOURCC_YV12: {
-      const uint8_t* src_y = sample + ((ptrdiff_t)src_width * crop_y + crop_x);
+      const uint8_t* src_y = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
       const uint8_t* src_u;
       const uint8_t* src_v;
       int halfwidth = (src_width + 1) / 2;
       int halfheight = (abs_src_height + 1) / 2;
       if (format == FOURCC_YV12) {
-        src_v = sample + (ptrdiff_t)src_width * abs_src_height +
+        src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
                 (ptrdiff_t)halfwidth * (crop_y / 2) + (crop_x / 2);
-        src_u = sample + (ptrdiff_t)src_width * abs_src_height +
+        src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
                 halfwidth * ((ptrdiff_t)halfheight + (crop_y / 2)) +
                 (crop_x / 2);
       } else {
-        src_u = sample + (ptrdiff_t)src_width * abs_src_height +
+        src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
                 (ptrdiff_t)halfwidth * (crop_y / 2) + (crop_x / 2);
-        src_v = sample + (ptrdiff_t)src_width * abs_src_height +
+        src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
                 halfwidth * ((ptrdiff_t)halfheight + (crop_y / 2)) +
                 (crop_x / 2);
       }
-      r = I420Rotate(src_y, src_width, src_u, halfwidth, src_v, halfwidth,
+      r = I420Rotate(src_y, src_stride, src_u, halfwidth, src_v, halfwidth,
                      dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
                      dst_stride_v, crop_width, inv_crop_height, rotation);
       break;
     }
     case FOURCC_I422:
     case FOURCC_YV16: {
-      const uint8_t* src_y = sample + (ptrdiff_t)src_width * crop_y + crop_x;
+      const uint8_t* src_y = sample + (ptrdiff_t)src_stride * crop_y + crop_x;
       const uint8_t* src_u;
       const uint8_t* src_v;
       int halfwidth = (src_width + 1) / 2;
       if (format == FOURCC_YV16) {
-        src_v = sample + (ptrdiff_t)src_width * abs_src_height +
+        src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
                 (ptrdiff_t)halfwidth * crop_y + (crop_x / 2);
-        src_u = sample + (ptrdiff_t)src_width * abs_src_height +
+        src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
                 halfwidth * ((ptrdiff_t)abs_src_height + crop_y) + (crop_x / 2);
       } else {
-        src_u = sample + (ptrdiff_t)src_width * abs_src_height +
+        src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
                 (ptrdiff_t)halfwidth * crop_y + (crop_x / 2);
-        src_v = sample + (ptrdiff_t)src_width * abs_src_height +
+        src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
                 halfwidth * ((ptrdiff_t)abs_src_height + crop_y) + (crop_x / 2);
       }
-      r = I422ToI420(src_y, src_width, src_u, halfwidth, src_v, halfwidth,
+      r = I422ToI420(src_y, src_stride, src_u, halfwidth, src_v, halfwidth,
                      dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
                      dst_stride_v, crop_width, inv_crop_height);
       break;
     }
     case FOURCC_I444:
     case FOURCC_YV24: {
-      const uint8_t* src_y = sample + (ptrdiff_t)src_width * crop_y + crop_x;
+      const uint8_t* src_y = sample + (ptrdiff_t)src_stride * crop_y + crop_x;
       const uint8_t* src_u;
       const uint8_t* src_v;
       if (format == FOURCC_YV24) {
         src_v =
-            sample + src_width * ((ptrdiff_t)abs_src_height + crop_y) + crop_x;
-        src_u = sample + src_width * ((ptrdiff_t)abs_src_height * 2 + crop_y) +
+            sample + src_stride * ((ptrdiff_t)abs_src_height + crop_y) + crop_x;
+        src_u = sample + src_stride * ((ptrdiff_t)abs_src_height * 2 + crop_y) +
                 crop_x;
       } else {
         src_u =
-            sample + src_width * ((ptrdiff_t)abs_src_height + crop_y) + crop_x;
-        src_v = sample + src_width * ((ptrdiff_t)abs_src_height * 2 + crop_y) +
+            sample + src_stride * ((ptrdiff_t)abs_src_height + crop_y) + crop_x;
+        src_v = sample + src_stride * ((ptrdiff_t)abs_src_height * 2 + crop_y) +
                 crop_x;
       }
-      r = I444ToI420(src_y, src_width, src_u, src_width, src_v, src_width,
+      r = I444ToI420(src_y, src_stride, src_u, src_stride, src_v, src_stride,
                      dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
                      dst_stride_v, crop_width, inv_crop_height);
       break;
