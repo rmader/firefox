@@ -441,6 +441,11 @@ void VideoCaptureModulePipeWire::ProcessBuffers() {
       SetApplyRotation(rotation != kVideoRotation_0);
     }
 
+    RTC_LOG(LS_ERROR) << "ProcessBuffers()"
+      << " type: " << configured_capability_.videoType
+      << " mjpeg: " << (configured_capability_.videoType == VideoType::kMJPEG)
+      << " n_datas: " << spaBuffer->n_datas
+      << " stride: " << spaBuffer->datas[0].chunk->stride;
     SetStride(spaBuffer->datas[0].chunk->stride);
 
     if (h->flags & SPA_META_HEADER_FLAG_CORRUPTED) {

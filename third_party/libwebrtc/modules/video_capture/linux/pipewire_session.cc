@@ -285,7 +285,7 @@ bool PipeWireNode::ParseFormat(const spa_pod* param,
     }
 
   } else if (media_subtype == SPA_MEDIA_SUBTYPE_mjpg) {
-    cap->videoType = VideoType::kMJPEG;
+    //cap->videoType = VideoType::kMJPEG;
   } else {
     RTC_LOG(LS_INFO) << "Unsupported PipeWire media subtype " << media_subtype;
   }
