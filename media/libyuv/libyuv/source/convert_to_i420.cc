@@ -96,8 +96,8 @@ int ConvertToI420(const uint8_t* sample,
                                     crop_x,
                                     crop_y,
                                     src_width,
-                                    src_stride,
                                     src_height,
+                                    src_stride,
                                     crop_width,
                                     crop_height,
                                     rotation,
@@ -121,8 +121,8 @@ int ConvertToI420WithSrcStride(const uint8_t* sample,
                                int crop_x,
                                int crop_y,
                                int src_width,
-                               int src_stride,
                                int src_height,
+                               int src_stride,
                                int crop_width,
                                int crop_height,
                                enum RotationMode rotation,
@@ -293,22 +293,22 @@ int ConvertToI420WithSrcStride(const uint8_t* sample,
       const uint8_t* src_y = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
       const uint8_t* src_u;
       const uint8_t* src_v;
-      int halfwidth = (src_width + 1) / 2;
+      int halfstride = (src_stride + 1) / 2;
       int halfheight = (abs_src_height + 1) / 2;
       if (format == FOURCC_YV12) {
         src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
-                (ptrdiff_t)halfwidth * (crop_y / 2) + (crop_x / 2);
+                (ptrdiff_t)halfstride * (crop_y / 2) + (crop_x / 2);
         src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
-                halfwidth * ((ptrdiff_t)halfheight + (crop_y / 2)) +
+                halfstride * ((ptrdiff_t)halfheight + (crop_y / 2)) +
                 (crop_x / 2);
       } else {
         src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
-                (ptrdiff_t)halfwidth * (crop_y / 2) + (crop_x / 2);
+                (ptrdiff_t)halfstride * (crop_y / 2) + (crop_x / 2);
         src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
-                halfwidth * ((ptrdiff_t)halfheight + (crop_y / 2)) +
+                halfstride * ((ptrdiff_t)halfheight + (crop_y / 2)) +
                 (crop_x / 2);
       }
-      r = I420Rotate(src_y, src_stride, src_u, halfwidth, src_v, halfwidth,
+      r = I420Rotate(src_y, src_stride, src_u, halfstride, src_v, halfstride,
                      dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
                      dst_stride_v, crop_width, inv_crop_height, rotation);
       break;
@@ -318,19 +318,19 @@ int ConvertToI420WithSrcStride(const uint8_t* sample,
       const uint8_t* src_y = sample + (ptrdiff_t)src_stride * crop_y + crop_x;
       const uint8_t* src_u;
       const uint8_t* src_v;
-      int halfwidth = (src_width + 1) / 2;
+      int halfstride = (src_stride + 1) / 2;
       if (format == FOURCC_YV16) {
         src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
-                (ptrdiff_t)halfwidth * crop_y + (crop_x / 2);
+                (ptrdiff_t)halfstride * crop_y + (crop_x / 2);
         src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
-                halfwidth * ((ptrdiff_t)abs_src_height + crop_y) + (crop_x / 2);
+                halfstride * ((ptrdiff_t)abs_src_height + crop_y) + (crop_x / 2);
       } else {
         src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
-                (ptrdiff_t)halfwidth * crop_y + (crop_x / 2);
+                (ptrdiff_t)halfstride * crop_y + (crop_x / 2);
         src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
-                halfwidth * ((ptrdiff_t)abs_src_height + crop_y) + (crop_x / 2);
+                halfstride * ((ptrdiff_t)abs_src_height + crop_y) + (crop_x / 2);
       }
-      r = I422ToI420(src_y, src_stride, src_u, halfwidth, src_v, halfwidth,
+      r = I422ToI420(src_y, src_stride, src_u, halfstride, src_v, halfstride,
                      dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
                      dst_stride_v, crop_width, inv_crop_height);
       break;
