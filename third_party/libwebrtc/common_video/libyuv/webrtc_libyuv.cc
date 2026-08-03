@@ -146,6 +146,324 @@ int ConvertFromI420(const VideoFrame& src_frame,
       ConvertVideoType(dst_video_type));
 }
 
+// Convert camera sample to I420 with cropping, rotation and vertical flip.
+// src_width is used for source stride computation
+// src_height is used to compute location of planes, and indicate inversion
+// sample_size is measured in bytes and is the size of the frame.
+//   With MJPEG it is the compressed size of the frame.
+int ConvertToI420(const uint8_t* sample,
+                  size_t sample_size,
+                  uint8_t* dst_y,
+                  int dst_stride_y,
+                  uint8_t* dst_u,
+                  int dst_stride_u,
+                  uint8_t* dst_v,
+                  int dst_stride_v,
+                  int crop_x,
+                  int crop_y,
+                  int src_width,
+                  int src_height,
+                  int crop_width,
+                  int crop_height,
+                  uint32_t rotation,
+                  uint32_t fourcc,
+                  int src_stride) {
+  if (src_height == INT_MIN || crop_height == INT_MIN) {
+    return -1;
+  }
+
+  const int abs_src_height = (src_height < 0) ? -src_height : src_height;
+  const int abs_crop_height = (crop_height < 0) ? -crop_height : crop_height;
+
+  if (!dst_y || !dst_u || !dst_v || !sample || src_width <= 0 ||
+      src_width > INT_MAX / 4 || crop_width <= 0 || src_height == 0 ||
+      crop_height == 0 || crop_x < 0 || crop_y < 0 || crop_width > src_width ||
+      crop_x > src_width - crop_width || abs_crop_height > abs_src_height ||
+      crop_y > abs_src_height - abs_crop_height) {
+    return -1;
+  }
+
+  uint32_t format = libyuv::CanonicalFourCC(fourcc);
+
+  if (src_stride == 0) {
+    switch (format) {
+      case libyuv::FOURCC_YUY2:
+      case libyuv::FOURCC_UYVY:
+      case libyuv::FOURCC_RGBP:
+      case libyuv::FOURCC_RGBO:
+      case libyuv::FOURCC_R444:
+        src_stride = src_width * 2;
+        break;
+      case libyuv::FOURCC_24BG:
+      case libyuv::FOURCC_RAW:
+        src_stride = src_width * 3;
+        break;
+      case libyuv::FOURCC_ARGB:
+      case libyuv::FOURCC_BGRA:
+      case libyuv::FOURCC_ABGR:
+      case libyuv::FOURCC_RGBA:
+        src_stride = src_width * 4;
+        break;
+      case libyuv::FOURCC_I400:
+      case libyuv::FOURCC_NV12:
+      case libyuv::FOURCC_NV21:
+      case libyuv::FOURCC_I420:
+      case libyuv::FOURCC_YV12:
+      case libyuv::FOURCC_I422:
+      case libyuv::FOURCC_YV16:
+      case libyuv::FOURCC_I444:
+      case libyuv::FOURCC_YV24:
+        src_stride = src_width;
+        break;
+#ifdef HAVE_JPEG
+      case libyuv::FOURCC_MJPG:
+        break;
+#endif
+      default:
+        return -1;
+    }
+  }
+
+  const uint8_t* src;
+  const uint8_t* src_uv;
+  int r = 0;
+  LIBYUV_BOOL need_buf =
+      (rotation && format != libyuv::FOURCC_I420 && format != libyuv::FOURCC_NV12 &&
+       format != libyuv::FOURCC_NV21 && format != libyuv::FOURCC_YV12) ||
+      dst_y == sample;
+  uint8_t* tmp_y = dst_y;
+  uint8_t* tmp_u = dst_u;
+  uint8_t* tmp_v = dst_v;
+  int tmp_y_stride = dst_stride_y;
+  int tmp_u_stride = dst_stride_u;
+  int tmp_v_stride = dst_stride_v;
+  uint8_t* rotate_buffer = NULL;
+  const int inv_crop_height =
+      (src_height < 0) ? -abs_crop_height : abs_crop_height;
+  int aligned_src_stride = (src_stride + 1) & ~1;
+
+  // One pass rotation is available for some formats. For the rest, convert
+  // to I420 (with optional vertical flipping) into a temporary I420 buffer,
+  // and then rotate the I420 to the final destination buffer.
+  // For in-place conversion, if destination dst_y is same as source sample,
+  // also enable temporary buffer.
+  if (need_buf) {
+    size_t y_size = (size_t)crop_width * abs_crop_height;
+    size_t uv_size =
+        (size_t)((crop_width + 1) / 2) * ((abs_crop_height + 1) / 2);
+    if (uv_size > SIZE_MAX / 2 || y_size > SIZE_MAX - uv_size * 2) {
+      return -1;  // Invalid size.
+    }
+    const size_t rotate_buffer_size = y_size + uv_size * 2;
+    rotate_buffer = (uint8_t*)malloc(rotate_buffer_size);
+    if (!rotate_buffer) {
+      return 1;  // Out of memory runtime error.
+    }
+    dst_y = rotate_buffer;
+    dst_u = dst_y + y_size;
+    dst_v = dst_u + uv_size;
+    dst_stride_y = crop_width;
+    dst_stride_u = dst_stride_v = ((crop_width + 1) / 2);
+  }
+
+  switch (format) {
+    // Single plane formats
+    case libyuv::FOURCC_YUY2: {  // TODO(fbarchard): Find better odd crop fix.
+      uint8_t* u = (crop_x & 1) ? dst_v : dst_u;
+      uint8_t* v = (crop_x & 1) ? dst_u : dst_v;
+      int stride_u = (crop_x & 1) ? dst_stride_v : dst_stride_u;
+      int stride_v = (crop_x & 1) ? dst_stride_u : dst_stride_v;
+      src = sample + ((ptrdiff_t)aligned_src_stride * crop_y + crop_x);
+      r = libyuv::YUY2ToI420(src, aligned_src_stride, dst_y, dst_stride_y, u,
+                             stride_u, v, stride_v, crop_width, inv_crop_height);
+      break;
+    }
+    case libyuv::FOURCC_UYVY: {
+      uint8_t* u = (crop_x & 1) ? dst_v : dst_u;
+      uint8_t* v = (crop_x & 1) ? dst_u : dst_v;
+      int stride_u = (crop_x & 1) ? dst_stride_v : dst_stride_u;
+      int stride_v = (crop_x & 1) ? dst_stride_u : dst_stride_v;
+      src = sample + ((ptrdiff_t)aligned_src_stride * crop_y + crop_x);
+      r = libyuv::UYVYToI420(src, aligned_src_stride, dst_y, dst_stride_y, u,
+                             stride_u, v, stride_v, crop_width, inv_crop_height);
+      break;
+    }
+    case libyuv::FOURCC_RGBP:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::RGB565ToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                               dst_stride_u, dst_v, dst_stride_v, crop_width,
+                               inv_crop_height);
+      break;
+    case libyuv::FOURCC_RGBO:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::ARGB1555ToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                                 dst_stride_u, dst_v, dst_stride_v, crop_width,
+                                 inv_crop_height);
+      break;
+    case libyuv::FOURCC_R444:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::ARGB4444ToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                                 dst_stride_u, dst_v, dst_stride_v, crop_width,
+                                 inv_crop_height);
+      break;
+    case libyuv::FOURCC_24BG:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::RGB24ToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                      dst_stride_u, dst_v, dst_stride_v, crop_width,
+                      inv_crop_height);
+      break;
+    case libyuv::FOURCC_RAW:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::RAWToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                    dst_stride_u, dst_v, dst_stride_v, crop_width,
+                    inv_crop_height);
+      break;
+    case libyuv::FOURCC_ARGB:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::ARGBToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                     dst_stride_u, dst_v, dst_stride_v, crop_width,
+                     inv_crop_height);
+      break;
+    case libyuv::FOURCC_BGRA:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::BGRAToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                     dst_stride_u, dst_v, dst_stride_v, crop_width,
+                     inv_crop_height);
+      break;
+    case libyuv::FOURCC_ABGR:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::ABGRToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                     dst_stride_u, dst_v, dst_stride_v, crop_width,
+                     inv_crop_height);
+      break;
+    case libyuv::FOURCC_RGBA:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      r = libyuv::RGBAToI420(src, src_stride, dst_y, dst_stride_y, dst_u,
+                     dst_stride_u, dst_v, dst_stride_v, crop_width,
+                     inv_crop_height);
+      break;
+    // TODO(fbarchard): Add AR30 and AB30
+    case libyuv::FOURCC_I400:
+      src = sample + (ptrdiff_t)src_stride * crop_y + crop_x;
+      r = libyuv::I400ToI420(src, src_stride, dst_y, dst_stride_y, dst_u, dst_stride_u,
+                     dst_v, dst_stride_v, crop_width, inv_crop_height);
+      break;
+    // Biplanar formats
+    case libyuv::FOURCC_NV12:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      src_uv = sample + ((ptrdiff_t)src_stride * abs_src_height) +
+               ((ptrdiff_t)(crop_y / 2) * aligned_src_stride) +
+               ((crop_x / 2) * 2);
+      r = libyuv::NV12ToI420Rotate(src, src_stride, src_uv, aligned_src_stride, dst_y,
+                           dst_stride_y, dst_u, dst_stride_u, dst_v,
+                           dst_stride_v, crop_width, inv_crop_height,
+                           (libyuv::RotationMode)rotation);
+      break;
+    case libyuv::FOURCC_NV21:
+      src = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      src_uv = sample + ((ptrdiff_t)src_stride * abs_src_height) +
+               ((ptrdiff_t)(crop_y / 2) * aligned_src_stride) +
+               ((crop_x / 2) * 2);
+      // Call NV12 but with dst_u and dst_v parameters swapped.
+      r = libyuv::NV12ToI420Rotate(src, src_stride, src_uv, aligned_src_stride, dst_y,
+                           dst_stride_y, dst_v, dst_stride_v, dst_u,
+                           dst_stride_u, crop_width, inv_crop_height,
+                           (libyuv::RotationMode)rotation);
+      break;
+    // Triplanar formats
+    case libyuv::FOURCC_I420:
+    case libyuv::FOURCC_YV12: {
+      const uint8_t* src_y = sample + ((ptrdiff_t)src_stride * crop_y + crop_x);
+      const uint8_t* src_u;
+      const uint8_t* src_v;
+      int halfstride = (src_stride + 1) / 2;
+      int halfheight = (abs_src_height + 1) / 2;
+      if (format == libyuv::FOURCC_YV12) {
+        src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
+                (ptrdiff_t)halfstride * (crop_y / 2) + (crop_x / 2);
+        src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
+                halfstride * ((ptrdiff_t)halfheight + (crop_y / 2)) +
+                (crop_x / 2);
+      } else {
+        src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
+                (ptrdiff_t)halfstride * (crop_y / 2) + (crop_x / 2);
+        src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
+                halfstride * ((ptrdiff_t)halfheight + (crop_y / 2)) +
+                (crop_x / 2);
+      }
+      r = libyuv::I420Rotate(src_y, src_stride, src_u, halfstride, src_v, halfstride,
+                     dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
+                     dst_stride_v, crop_width, inv_crop_height,
+                     (libyuv::RotationMode)rotation);
+      break;
+    }
+    case libyuv::FOURCC_I422:
+    case libyuv::FOURCC_YV16: {
+      const uint8_t* src_y = sample + (ptrdiff_t)src_stride * crop_y + crop_x;
+      const uint8_t* src_u;
+      const uint8_t* src_v;
+      int halfstride = (src_stride + 1) / 2;
+      if (format == libyuv::FOURCC_YV16) {
+        src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
+                (ptrdiff_t)halfstride * crop_y + (crop_x / 2);
+        src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
+                halfstride * ((ptrdiff_t)abs_src_height + crop_y) + (crop_x / 2);
+      } else {
+        src_u = sample + (ptrdiff_t)src_stride * abs_src_height +
+                (ptrdiff_t)halfstride * crop_y + (crop_x / 2);
+        src_v = sample + (ptrdiff_t)src_stride * abs_src_height +
+                halfstride * ((ptrdiff_t)abs_src_height + crop_y) + (crop_x / 2);
+      }
+      r = libyuv::I422ToI420(src_y, src_stride, src_u, halfstride, src_v, halfstride,
+                     dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
+                     dst_stride_v, crop_width, inv_crop_height);
+      break;
+    }
+    case libyuv::FOURCC_I444:
+    case libyuv::FOURCC_YV24: {
+      const uint8_t* src_y = sample + (ptrdiff_t)src_stride * crop_y + crop_x;
+      const uint8_t* src_u;
+      const uint8_t* src_v;
+      if (format == libyuv::FOURCC_YV24) {
+        src_v =
+            sample + src_stride * ((ptrdiff_t)abs_src_height + crop_y) + crop_x;
+        src_u = sample + src_stride * ((ptrdiff_t)abs_src_height * 2 + crop_y) +
+                crop_x;
+      } else {
+        src_u =
+            sample + src_stride * ((ptrdiff_t)abs_src_height + crop_y) + crop_x;
+        src_v = sample + src_stride * ((ptrdiff_t)abs_src_height * 2 + crop_y) +
+                crop_x;
+      }
+      r = libyuv::I444ToI420(src_y, src_stride, src_u, src_stride, src_v, src_stride,
+                     dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
+                     dst_stride_v, crop_width, inv_crop_height);
+      break;
+    }
+#ifdef HAVE_JPEG
+    case libyuv::FOURCC_MJPG:
+      r = libyuv::MJPGToI420(sample, sample_size, dst_y, dst_stride_y, dst_u,
+                     dst_stride_u, dst_v, dst_stride_v, src_width,
+                     abs_src_height, crop_width, inv_crop_height);
+      break;
+#endif
+    default:
+      r = -1;  // unknown fourcc - return failure code.
+  }
+
+  if (need_buf) {
+    if (!r) {
+      r = libyuv::I420Rotate(dst_y, dst_stride_y, dst_u, dst_stride_u, dst_v,
+                     dst_stride_v, tmp_y, tmp_y_stride, tmp_u, tmp_u_stride,
+                     tmp_v, tmp_v_stride, crop_width, abs_crop_height,
+                     (libyuv::RotationMode)rotation);
+    }
+    free(rotate_buffer);
+  }
+
+  return r;
+}
+
 scoped_refptr<I420ABufferInterface> ScaleI420ABuffer(
     const I420ABufferInterface& buffer,
     int target_width,

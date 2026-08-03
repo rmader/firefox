@@ -84,6 +84,24 @@ int ConvertFromI420(const VideoFrame& src_frame,
                     int dst_sample_size,
                     uint8_t* dst_frame);
 
+int ConvertToI420(const uint8_t* sample,
+                  size_t sample_size,
+                  uint8_t* dst_y,
+                  int dst_stride_y,
+                  uint8_t* dst_u,
+                  int dst_stride_u,
+                  uint8_t* dst_v,
+                  int dst_stride_v,
+                  int crop_x,
+                  int crop_y,
+                  int src_width,
+                  int src_height,
+                  int crop_width,
+                  int crop_height,
+                  uint32_t rotation,
+                  uint32_t fourcc,
+                  int src_stride);
+
 scoped_refptr<I420BufferInterface> ScaleVideoFrameBuffer(
     const I420BufferInterface& source,
     int dst_width,

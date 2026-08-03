@@ -231,22 +231,12 @@ int32_t VideoCaptureImpl::IncomingFrame(uint8_t* videoFrame,
     std::swap(dst_width, dst_height);
   }
 
-  int conversionResult;
-  if (stride_ > 0) {
-    conversionResult = libyuv::ConvertToI420WithSrcStride(
-        videoFrame, videoFrameLength, buffer->MutableDataY(), buffer->StrideY(),
-        buffer->MutableDataU(), buffer->StrideU(), buffer->MutableDataV(),
-        buffer->StrideV(), 0, 0,  // No Cropping
-        width, height, stride_, dst_width, dst_height, rotation_mode,
-        ConvertVideoType(frameInfo.videoType));
-  } else {
-    conversionResult = libyuv::ConvertToI420(
-        videoFrame, videoFrameLength, buffer->MutableDataY(), buffer->StrideY(),
-        buffer->MutableDataU(), buffer->StrideU(), buffer->MutableDataV(),
-        buffer->StrideV(), 0, 0,  // No Cropping
-        width, height, dst_width, dst_height, rotation_mode,
-        ConvertVideoType(frameInfo.videoType));
-  }
+  const int conversionResult = ConvertToI420(
+      videoFrame, videoFrameLength, buffer->MutableDataY(), buffer->StrideY(),
+      buffer->MutableDataU(), buffer->StrideU(), buffer->MutableDataV(),
+      buffer->StrideV(), 0, 0,  // No Cropping
+      width, height, dst_width, dst_height, (uint32_t)rotation_mode,
+      ConvertVideoType(frameInfo.videoType), stride_);
   if (conversionResult != 0) {
     RTC_LOG(LS_ERROR) << "Failed to convert capture frame from type "
                       << static_cast<int>(frameInfo.videoType) << "to I420.";
