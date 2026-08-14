@@ -15,7 +15,7 @@
 #  include <gdk/gdk.h>
 #endif
 
-int glxtest(bool aWayland, int aOutputFd);
+int glxtest(bool aWayland, bool aPreferGles, int aOutputFd);
 
 #ifdef MOZ_ENABLE_VAAPI
 int vaapitest(const char* aDrmDevice);
@@ -54,15 +54,20 @@ static int RunGlx(int argc, char** argv) {
   struct option longOptions[] = {{"help", no_argument, nullptr, 'h'},
                                  {"fd", required_argument, nullptr, 'f'},
                                  {"wayland", no_argument, nullptr, 'w'},
+                                 {"gles", no_argument, nullptr, 'g'},
                                  {nullptr, 0, nullptr, 0}};
   int c;
   optind = 1;
   bool wayland = false;
+  bool preferGles = false;
   int outputFd = 1;
-  while ((c = getopt_long(argc, argv, "hf:w", longOptions, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "hf:wg", longOptions, nullptr)) != -1) {
     switch (c) {
       case 'w':
         wayland = true;
+        break;
+      case 'g':
+        preferGles = true;
         break;
       case 'f':
         outputFd = atoi(optarg);
@@ -80,7 +85,7 @@ static int RunGlx(int argc, char** argv) {
         break;
     }
   }
-  return glxtest(wayland, outputFd);
+  return glxtest(wayland, preferGles, outputFd);
 }
 
 #ifdef MOZ_ENABLE_VAAPI

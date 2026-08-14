@@ -462,7 +462,8 @@ static void query_egl_dmabuf_modifiers(EGLDisplay dpy,
 }
 
 static bool get_egl_gl_status(EGLDisplay dpy,
-                              PFNEGLGETPROCADDRESS eglGetProcAddress) {
+                              PFNEGLGETPROCADDRESS eglGetProcAddress,
+                              bool aPreferGles) {
   typedef EGLBoolean (*PFNEGLCHOOSECONFIGPROC)(
       EGLDisplay dpy, EGLint const* attrib_list, EGLConfig* configs,
       EGLint config_size, EGLint* num_config);
@@ -513,12 +514,6 @@ static bool get_egl_gl_status(EGLDisplay dpy,
   PFNGLGETSTRING glGetString =
       cast<PFNGLGETSTRING>(eglGetProcAddress("glGetString"));
 
-#if defined(__arm__) || defined(__aarch64__)
-  bool useGles = true;
-#else
-  bool useGles = false;
-#endif
-
   std::vector<EGLint> attribs;
   attribs.push_back(EGL_RED_SIZE);
   attribs.push_back(8);
@@ -526,7 +521,7 @@ static bool get_egl_gl_status(EGLDisplay dpy,
   attribs.push_back(8);
   attribs.push_back(EGL_BLUE_SIZE);
   attribs.push_back(8);
-  if (useGles) {
+  if (aPreferGles) {
     attribs.push_back(EGL_RENDERABLE_TYPE);
     attribs.push_back(EGL_OPENGL_ES2_BIT);
   }
@@ -540,7 +535,7 @@ static bool get_egl_gl_status(EGLDisplay dpy,
     return false;
   }
 
-  EGLenum api = useGles ? EGL_OPENGL_ES_API : EGL_OPENGL_API;
+  EGLenum api = aPreferGles ? EGL_OPENGL_ES_API : EGL_OPENGL_API;
   if (eglBindAPI(api) == EGL_FALSE) {
     record_warning("eglBindAPI returned an error");
     return false;
@@ -629,8 +624,8 @@ static bool get_egl_gl_status(EGLDisplay dpy,
 }
 
 static bool get_egl_status(EGLNativeDisplayType native_dpy,
-                           bool aLoadModifiers) {
-  log("GLX_TEST: get_egl_status start\n");
+                           bool aLoadModifiers, bool aPreferGles) {
+  log("GLX_TEST: get_egl_status %s start\n", aPreferGles ? "GLES" : "GL");
 
   EGLDisplay dpy = nullptr;
 
@@ -705,7 +700,7 @@ static bool get_egl_status(EGLNativeDisplayType native_dpy,
     }
   }
 
-  bool ret = get_egl_gl_status(dpy, eglGetProcAddress);
+  bool ret = get_egl_gl_status(dpy, eglGetProcAddress, aPreferGles);
 
   if (aLoadModifiers) {
     query_egl_dmabuf_modifiers(dpy, eglGetProcAddress);
@@ -973,7 +968,7 @@ void glx_probe() {
   log("GLX_TEST: glxtest finished\n");
 }
 
-bool x11_egltest() {
+bool x11_egltest(bool aPreferGles) {
   log("GLX_TEST: x11_egltest start\n");
 
   Display* dpy = XOpenDisplay(nullptr);
@@ -991,7 +986,7 @@ bool x11_egltest() {
 
   XSetErrorHandler(x_error_handler);
 
-  if (!get_egl_status(dpy, /* aLoadModifiers */ true)) {
+  if (!get_egl_status(dpy, /* aLoadModifiers */ true, aPreferGles)) {
     return false;
   }
 
@@ -1019,7 +1014,7 @@ bool x11_egltest() {
 #endif
 
 #ifdef MOZ_WAYLAND
-void wayland_egltest() {
+void wayland_egltest(bool aPreferGles) {
   log("GLX_TEST: wayland_egltest start\n");
 
   static auto sWlDisplayConnect = (struct wl_display * (*)(const char*))
@@ -1043,7 +1038,8 @@ void wayland_egltest() {
     return;
   }
 
-  if (!get_egl_status((EGLNativeDisplayType)dpy, /* aLoadModifiers */ false)) {
+  if (!get_egl_status((EGLNativeDisplayType)dpy, /* aLoadModifiers */ false,
+                      aPreferGles)) {
     record_error("EGL test failed");
   }
 
@@ -1057,7 +1053,7 @@ void wayland_egltest() {
 }
 #endif
 
-int childgltest(bool aWayland) {
+int childgltest(bool aWayland, bool aPreferGles) {
   log("GLX_TEST: childgltest start\n");
 
   // Get a list of all GPUs from the PCI bus.
@@ -1065,13 +1061,13 @@ int childgltest(bool aWayland) {
 
 #ifdef MOZ_WAYLAND
   if (aWayland) {
-    wayland_egltest();
+    wayland_egltest(aPreferGles);
   }
 #endif
 #ifdef MOZ_X11
   if (!aWayland) {
     // TODO: --display command line argument is not properly handled
-    if (!x11_egltest()) {
+    if (!x11_egltest(aPreferGles)) {
       glx_probe();
     }
   }
@@ -1085,7 +1081,7 @@ int childgltest(bool aWayland) {
 
 }  // extern "C"
 
-int glxtest(bool aWayland, int aOutputFd) {
+int glxtest(bool aWayland, bool aPreferGles, int aOutputFd) {
   output_pipe = aOutputFd;
   if (getenv("MOZ_AVOID_OPENGL_ALTOGETHER")) {
     const char* msg = "ERROR\nMOZ_AVOID_OPENGL_ALTOGETHER envvar set";
@@ -1097,5 +1093,5 @@ int glxtest(bool aWayland, int aOutputFd) {
   if (!enable_logging) {
     close_logging();
   }
-  return childgltest(aWayland);
+  return childgltest(aWayland, aPreferGles);
 }

@@ -707,8 +707,12 @@ bool GfxInfo::FireGLXTestProcess() {
   sGLXTestPipe = pfd[0];
 
   auto pipeID = std::to_string(pfd[1]);
+  // The FireGLXTestProcess() is lanched early before prefs are init
+  // so mirror default gfx.egl.prefer-gles.enabled state here.
   const char* args[] = {"glx", "-f", pipeID.c_str(),
-                        IsWaylandEnabled() ? "-w" : nullptr, nullptr};
+                        IsWaylandEnabled() ? "-w" : nullptr, 
+                        /* prefer GLES */ "-g",
+                        nullptr};
   sGLXTestPID = FireTestProcess(GFX_PROBE_BINARY, nullptr, args);
   // Set pid to -1 to avoid further test launch.
   if (!sGLXTestPID) {
