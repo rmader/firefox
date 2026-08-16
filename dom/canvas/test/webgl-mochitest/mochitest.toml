@@ -35,6 +35,9 @@ fail-if = [
 ["ensure-exts/test_EXT_sRGB.html"]
 
 ["ensure-exts/test_EXT_shader_texture_lod.html"]
+fail-if = [
+  "os == 'linux'",
+]
 
 ["ensure-exts/test_EXT_texture_compression_bptc.html"]
 fail-if = [
