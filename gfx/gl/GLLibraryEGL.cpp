@@ -587,7 +587,7 @@ RefPtr<GLLibraryEGL> GLLibraryEGL::GetImpl(LibraryType type,
     return sInstance;
   }
 
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) or defined(MOZ_WIDGET_GTK)
   if (type == LibraryType::Native || !gfx::gfxVars::UseWebRenderANGLE()) {
     auto lib = ensureInitialized(sNativeInstance, LibraryType::Native);
     if (type == LibraryType::Default) {
@@ -626,14 +626,7 @@ bool GLLibraryEGL::Init(LibraryType type, nsACString* const out_failureId) {
 
   mozilla::ScopedGfxFeatureReporter reporter("EGL");
 
-#ifndef MOZ_WIDGET_ANDROID
-  // The explicit native entry point is currently implemented only for Android.
-  if (type == LibraryType::Native) {
-    *out_failureId = "FEATURE_FAILURE_NATIVE_EGL_UNSUPPORTED"_ns;
-    MOZ_ASSERT_UNREACHABLE("unexpected to be called");
-    return false;
-  }
-#else
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
   MOZ_ASSERT(type != LibraryType::Default);
   const bool useANGLE = type == LibraryType::ANGLE;
   if (useANGLE) {
@@ -647,6 +640,13 @@ bool GLLibraryEGL::Init(LibraryType type, nsACString* const out_failureId) {
       gfxCriticalNote << "Failed to load ANGLE";
       return false;
     }
+  }
+#else
+  // The explicit native entry point is currently implemented only for Android.
+  if (type == LibraryType::Native) {
+    *out_failureId = "FEATURE_FAILURE_NATIVE_EGL_UNSUPPORTED"_ns;
+    MOZ_ASSERT_UNREACHABLE("unexpected to be called");
+    return false;
   }
 #endif
 

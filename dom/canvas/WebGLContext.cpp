@@ -366,6 +366,11 @@ bool WebGLContext::CreateAndInitGL(
     tryNativeGL = false;
     tryANGLE = true;
   }
+#elif defined(XP_LINUX)
+  if (!StaticPrefs::webgl_disable_angle_AtStartup()) {
+    tryNativeGL = false;
+    tryANGLE = true;
+  }
 #endif
 
   if (tryNativeGL && !forceEnabled) {

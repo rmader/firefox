@@ -92,7 +92,7 @@ void gfxConfigManager::Init() {
 #elif defined(XP_MACOSX)
   mFeatureMetalAngle = &gfxConfig::GetFeature(Feature::WEBRENDER_ANGLE_METAL);
   mFeatureWrAngleBackend = mFeatureMetalAngle;
-#elif defined(MOZ_WIDGET_ANDROID)
+#elif defined(MOZ_WIDGET_ANDROID) or defined(MOZ_WIDGET_GTK)
   mFeatureGlAngle = &gfxConfig::GetFeature(Feature::WEBRENDER_ANGLE_GL);
   mFeatureWrAngleBackend = mFeatureGlAngle;
 #endif
