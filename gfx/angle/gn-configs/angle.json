@@ -7,6 +7,7 @@
     "*": "//:translator",
     "android": "//:libEGL",
     "mac": "//:libEGL",
+    "linux": "//:libEGL",
     "win": "//:libEGL"
   },
   "gn_args": {
@@ -42,6 +43,11 @@
     "mac": {
       "angle_enable_metal": true,
       "angle_enable_msl": true
+    },
+    "linux": {
+      "angle_enable_gl": true,
+      "angle_build_vulkan_system_info": true,
+      "angle_shared_libvulkan": false
     },
     "win": {
       "angle_enable_d3d11": true,
