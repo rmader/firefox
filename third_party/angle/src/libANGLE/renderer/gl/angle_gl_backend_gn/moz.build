@@ -9,32 +9,15 @@
 COMPILE_FLAGS["OS_INCLUDES"] = []
 AllowCompilerWarnings()
 
-CXXFLAGS += [
-    "-Wno-nullability-completeness"
-]
-
-DEFINES["ANDROID"] = True
-DEFINES["ANDROID_NDK_VERSION_ROLL"] = "r27_1"
 DEFINES["ANGLE_DISABLE_POOL_ALLOC"] = True
 DEFINES["ANGLE_ENABLE_CONTEXT_MUTEX"] = "1"
-DEFINES["ANGLE_ENABLE_CONTEXT_MUTEX_RECURSION"] = "1"
-DEFINES["ANGLE_ENABLE_CRC_FOR_PIPELINE_CACHE"] = True
 DEFINES["ANGLE_ENABLE_DEBUG_ANNOTATIONS"] = False
-DEFINES["ANGLE_ENABLE_GLOBAL_MUTEX_LOAD_TIME_ALLOCATE"] = "1"
-DEFINES["ANGLE_ENABLE_GLOBAL_MUTEX_RECURSION"] = "1"
 DEFINES["ANGLE_ENABLE_KEYEDMUTEX"] = True
 DEFINES["ANGLE_ENABLE_OPENGL"] = True
 DEFINES["ANGLE_ENABLE_SHARE_CONTEXT_LOCK"] = "1"
-DEFINES["ANGLE_ENABLE_VULKAN"] = True
 DEFINES["ANGLE_PLATFORM_EXPORT"] = ""
 DEFINES["ANGLE_SKIP_DXGI_1_2_CHECK"] = True
-DEFINES["ANGLE_USE_ANDROID_TLS_SLOT"] = "1"
-DEFINES["EGL_NO_X11"] = True
-DEFINES["HAVE_SYS_UIO_H"] = True
 DEFINES["LIBANGLE_IMPLEMENTATION"] = True
-DEFINES["VK_USE_PLATFORM_ANDROID_KHR"] = True
-DEFINES["_GNU_SOURCE"] = True
-DEFINES["__ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__"] = True
 DEFINES["__STDC_CONSTANT_MACROS"] = True
 DEFINES["__STDC_FORMAT_MACROS"] = True
 
@@ -46,13 +29,7 @@ LOCAL_INCLUDES += [
     "/third_party/angle/src/common/base/",
     "/third_party/angle/src/common/third_party/xxhash/src/",
     "/third_party/angle/src/third_party/khronos/",
-    "/third_party/angle/third_party/vulkan-headers/src/include/",
     "/tools/profiler/public"
-]
-
-OS_LIBS += [
-    "log",
-    "nativewindow"
 ]
 
 UNIFIED_SOURCES += [
@@ -63,8 +40,6 @@ UNIFIED_SOURCES += [
     "/third_party/angle/src/libANGLE/renderer/gl/ContextGL.cpp",
     "/third_party/angle/src/libANGLE/renderer/gl/DispatchTableGL_autogen.cpp",
     "/third_party/angle/src/libANGLE/renderer/gl/DisplayGL.cpp",
-    "/third_party/angle/src/libANGLE/renderer/gl/egl/android/DisplayAndroid.cpp",
-    "/third_party/angle/src/libANGLE/renderer/gl/egl/android/NativeBufferImageSiblingAndroid.cpp",
     "/third_party/angle/src/libANGLE/renderer/gl/egl/ContextEGL.cpp",
     "/third_party/angle/src/libANGLE/renderer/gl/egl/DeviceEGL.cpp",
     "/third_party/angle/src/libANGLE/renderer/gl/egl/DisplayEGL.cpp",
@@ -121,8 +96,145 @@ if CONFIG["MOZ_DEBUG"] == "1":
     DEFINES["DYNAMIC_ANNOTATIONS_ENABLED"] = "1"
     DEFINES["_DEBUG"] = True
 
+if CONFIG["OS_TARGET"] == "Android":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["ANDROID"] = True
+    DEFINES["ANDROID_NDK_VERSION_ROLL"] = "r27_1"
+    DEFINES["ANGLE_ENABLE_CONTEXT_MUTEX_RECURSION"] = "1"
+    DEFINES["ANGLE_ENABLE_CRC_FOR_PIPELINE_CACHE"] = True
+    DEFINES["ANGLE_ENABLE_GLOBAL_MUTEX_LOAD_TIME_ALLOCATE"] = "1"
+    DEFINES["ANGLE_ENABLE_GLOBAL_MUTEX_RECURSION"] = "1"
+    DEFINES["ANGLE_ENABLE_VULKAN"] = True
+    DEFINES["ANGLE_USE_ANDROID_TLS_SLOT"] = "1"
+    DEFINES["EGL_NO_X11"] = True
+    DEFINES["HAVE_SYS_UIO_H"] = True
+    DEFINES["VK_USE_PLATFORM_ANDROID_KHR"] = True
+    DEFINES["_GNU_SOURCE"] = True
+    DEFINES["__ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__"] = True
+
+    LOCAL_INCLUDES += [
+        "/third_party/angle/third_party/vulkan-headers/src/include/"
+    ]
+
+    OS_LIBS += [
+        "log",
+        "nativewindow"
+    ]
+
+    UNIFIED_SOURCES += [
+        "/third_party/angle/src/libANGLE/renderer/gl/egl/android/DisplayAndroid.cpp",
+        "/third_party/angle/src/libANGLE/renderer/gl/egl/android/NativeBufferImageSiblingAndroid.cpp"
+    ]
+
+if CONFIG["OS_TARGET"] == "Linux":
+
+    DEFINES["ANGLE_ENABLE_GL_DESKTOP_BACKEND"] = True
+    DEFINES["ANGLE_HAS_LIBDRM"] = True
+    DEFINES["ANGLE_IS_LINUX"] = True
+    DEFINES["ANGLE_USE_VULKAN_DISPLAY"] = True
+    DEFINES["ANGLE_VULKAN_DISPLAY_MODE_HEADLESS"] = True
+    DEFINES["USE_AURA"] = "1"
+    DEFINES["USE_GLIB"] = "1"
+    DEFINES["USE_OZONE"] = "1"
+    DEFINES["USE_UDEV"] = True
+    DEFINES["_FILE_OFFSET_BITS"] = "64"
+    DEFINES["_LARGEFILE64_SOURCE"] = True
+    DEFINES["_LARGEFILE_SOURCE"] = True
+
+    OS_LIBS += [
+        "dl",
+        "drm",
+        "pci"
+    ]
+
+if CONFIG["MOZ_X11"] == "1":
+
+    DEFINES["ANGLE_USE_X11"] = True
+
+    OS_LIBS += [
+        "X11",
+        "xcb",
+        "Xext",
+        "Xi"
+    ]
+
+    UNIFIED_SOURCES += [
+        "/third_party/angle/src/libANGLE/renderer/gl/glx/ContextGLX.cpp",
+        "/third_party/angle/src/libANGLE/renderer/gl/glx/DisplayGLX.cpp",
+        "/third_party/angle/src/libANGLE/renderer/gl/glx/FunctionsGLX.cpp",
+        "/third_party/angle/src/libANGLE/renderer/gl/glx/glx_utils.cpp",
+        "/third_party/angle/src/libANGLE/renderer/gl/glx/PbufferSurfaceGLX.cpp",
+        "/third_party/angle/src/libANGLE/renderer/gl/glx/PixmapSurfaceGLX.cpp",
+        "/third_party/angle/src/libANGLE/renderer/gl/glx/RendererGLX.cpp",
+        "/third_party/angle/src/libANGLE/renderer/gl/glx/WindowSurfaceGLX.cpp"
+    ]
+
 if CONFIG["TARGET_CPU"] == "aarch64":
 
     DEFINES["__ARM_NEON__"] = "1"
+
+if CONFIG["TARGET_CPU"] == "loongarch64":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["TARGET_CPU"] == "mips32":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["TARGET_CPU"] == "mips64":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if not CONFIG["MOZ_X11"] and CONFIG["OS_TARGET"] == "Linux":
+
+    DEFINES["EGL_NO_X11"] = True
+
+if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "aarch64":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "arm":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "x86":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "x86_64":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
 
 Library("angle_gl_backend_gn")

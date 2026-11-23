@@ -9,10 +9,6 @@
 COMPILE_FLAGS["OS_INCLUDES"] = []
 AllowCompilerWarnings()
 
-CXXFLAGS += [
-    "-Wno-nullability-completeness"
-]
-
 DEFINES["ANGLE_DISABLE_POOL_ALLOC"] = True
 DEFINES["ANGLE_ENABLE_CONTEXT_MUTEX"] = "1"
 DEFINES["ANGLE_ENABLE_DEBUG_ANNOTATIONS"] = False
@@ -25,7 +21,6 @@ DEFINES["ANGLE_SKIP_DXGI_1_2_CHECK"] = True
 DEFINES["ANGLE_USE_EGL_LOADER"] = True
 DEFINES["EGL_EGLEXT_PROTOTYPES"] = True
 DEFINES["EGL_EGL_PROTOTYPES"] = "1"
-DEFINES["EGL_NO_X11"] = True
 DEFINES["GL_GLES_PROTOTYPES"] = "1"
 DEFINES["GL_GLEXT_PROTOTYPES"] = True
 DEFINES["LIBEGL_IMPLEMENTATION"] = True
@@ -64,6 +59,10 @@ if CONFIG["MOZ_DEBUG"] == "1":
 
 if CONFIG["OS_TARGET"] == "Android":
 
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
     DEFINES["ANDROID"] = True
     DEFINES["ANDROID_NDK_VERSION_ROLL"] = "r27_1"
     DEFINES["ANGLE_DISPATCH_LIBRARY"] = "\"libGLESv2_angle\""
@@ -76,6 +75,7 @@ if CONFIG["OS_TARGET"] == "Android":
     DEFINES["ANGLE_VULKAN_SECONDARIES_EGL_LIBRARY_NAME"] = "\"libEGL_vulkan_secondaries_angle\""
     DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries_angle\""
     DEFINES["EGLAPI"] = "__attribute__((visibility(\"default\")))"
+    DEFINES["EGL_NO_X11"] = True
     DEFINES["HAVE_SYS_UIO_H"] = True
     DEFINES["_GNU_SOURCE"] = True
     DEFINES["__ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__"] = True
@@ -94,12 +94,17 @@ if CONFIG["OS_TARGET"] == "Android":
 
 if CONFIG["OS_TARGET"] == "Darwin":
 
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
     DEFINES["ANGLE_DISPATCH_LIBRARY"] = "\"libGLESv2\""
     DEFINES["ANGLE_EGL_LIBRARY_NAME"] = "\"libEGL\""
     DEFINES["ANGLE_GLESV2_LIBRARY_NAME"] = "\"libGLESv2\""
     DEFINES["ANGLE_VULKAN_SECONDARIES_EGL_LIBRARY_NAME"] = "\"libEGL_vulkan_secondaries\""
     DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries\""
     DEFINES["EGLAPI"] = "__attribute__((visibility(\"default\")))"
+    DEFINES["EGL_NO_X11"] = True
     DEFINES["__STDC_CONSTANT_MACROS"] = True
     DEFINES["__STDC_FORMAT_MACROS"] = True
 
@@ -110,7 +115,41 @@ if CONFIG["OS_TARGET"] == "Darwin":
     SHARED_LIBRARY_NAME = "EGL"
 
 
+if CONFIG["OS_TARGET"] == "Linux":
+
+    DEFINES["ANGLE_DISPATCH_LIBRARY"] = "\"libGLESv2\""
+    DEFINES["ANGLE_EGL_LIBRARY_NAME"] = "\"libEGL\""
+    DEFINES["ANGLE_GLESV2_LIBRARY_NAME"] = "\"libGLESv2\""
+    DEFINES["ANGLE_IS_LINUX"] = True
+    DEFINES["ANGLE_USE_VULKAN_DISPLAY"] = True
+    DEFINES["ANGLE_VULKAN_DISPLAY_MODE_HEADLESS"] = True
+    DEFINES["ANGLE_VULKAN_SECONDARIES_EGL_LIBRARY_NAME"] = "\"libEGL_vulkan_secondaries\""
+    DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries\""
+    DEFINES["EGLAPI"] = "__attribute__((visibility(\"default\")))"
+    DEFINES["USE_AURA"] = "1"
+    DEFINES["USE_GLIB"] = "1"
+    DEFINES["USE_OZONE"] = "1"
+    DEFINES["USE_UDEV"] = True
+    DEFINES["_FILE_OFFSET_BITS"] = "64"
+    DEFINES["_LARGEFILE64_SOURCE"] = True
+    DEFINES["_LARGEFILE_SOURCE"] = True
+    DEFINES["__STDC_CONSTANT_MACROS"] = True
+    DEFINES["__STDC_FORMAT_MACROS"] = True
+
+    OS_LIBS += [
+        "dl",
+        "pthread",
+        "rt"
+    ]
+
+    SHARED_LIBRARY_NAME = "EGL"
+
+
 if CONFIG["OS_TARGET"] == "WINNT":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
 
     DEFFILE = "/third_party/angle/src/libEGL/libEGL_autogen.def"
 
@@ -123,6 +162,7 @@ if CONFIG["OS_TARGET"] == "WINNT":
     DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries\""
     DEFINES["CERT_CHAIN_PARA_HAS_EXTRA_FIELDS"] = True
     DEFINES["EGLAPI"] = ""
+    DEFINES["EGL_NO_X11"] = True
     DEFINES["NOMINMAX"] = True
     DEFINES["NTDDI_VERSION"] = "0x0A000000"
     DEFINES["PSAPI_VERSION"] = "2"
@@ -186,9 +226,37 @@ if CONFIG["OS_TARGET"] == "WINNT":
         "angle_version_gn"
     ]
 
+if CONFIG["MOZ_X11"] == "1":
+
+    DEFINES["ANGLE_USE_X11"] = True
+
 if CONFIG["TARGET_CPU"] == "aarch64":
 
     DEFINES["__ARM_NEON__"] = "1"
+
+if CONFIG["TARGET_CPU"] == "loongarch64":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["TARGET_CPU"] == "mips32":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["TARGET_CPU"] == "mips64":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
 
 if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["OS_TARGET"] == "Android":
 
@@ -198,8 +266,48 @@ if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["OS_TARGET"] == "Darwin":
 
     DEFINES["_DEBUG"] = True
 
+if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["OS_TARGET"] == "Linux":
+
+    DEFINES["_DEBUG"] = True
+
 if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["OS_TARGET"] == "WINNT":
 
     DEFINES["_HAS_ITERATOR_DEBUGGING"] = "0"
+
+if not CONFIG["MOZ_X11"] and CONFIG["OS_TARGET"] == "Linux":
+
+    DEFINES["EGL_NO_X11"] = True
+
+if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "aarch64":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "arm":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "x86":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
+
+if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "x86_64":
+
+    CXXFLAGS += [
+        "-Wno-nullability-completeness"
+    ]
+
+    DEFINES["_GNU_SOURCE"] = True
 
 GeckoSharedLibrary("EGL_gn")
