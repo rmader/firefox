@@ -32,9 +32,10 @@ if (angle_has_build) {
 
 declare_args() {
   # Use the PCI lib to collect GPU information on Linux.
-  use_libpci =
-      (is_linux || is_chromeos) &&
-      (angle_use_x11 || angle_use_wayland || use_ozone) && angle_has_build
+  #use_libpci =
+  #    (is_linux || is_chromeos) &&
+  #    (angle_use_x11 || angle_use_wayland || use_ozone) && angle_has_build
+  use_libpci = false
 
   # Enable using Vulkan to collect system info as a fallback.
   angle_enable_vulkan_system_info = is_chromeos

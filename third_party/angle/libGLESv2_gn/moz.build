@@ -170,7 +170,6 @@ if CONFIG["OS_TARGET"] == "Linux":
     OS_LIBS += [
         "dl",
         "drm",
-        "pci",
         "pthread",
         "rt"
     ]

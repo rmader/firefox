@@ -130,7 +130,6 @@ if CONFIG["OS_TARGET"] == "Linux":
     DEFINES["ANGLE_USE_CUSTOM_LIBVULKAN"] = True
     DEFINES["ANGLE_USE_VULKAN_DISPLAY"] = True
     DEFINES["ANGLE_VULKAN_DISPLAY_MODE_HEADLESS"] = True
-    DEFINES["GPU_INFO_USE_LIBPCI"] = True
     DEFINES["USE_AURA"] = "1"
     DEFINES["USE_GLIB"] = "1"
     DEFINES["USE_OZONE"] = "1"
@@ -147,12 +146,10 @@ if CONFIG["OS_TARGET"] == "Linux":
     ]
 
     OS_LIBS += [
-        "dl",
-        "pci"
+        "dl"
     ]
 
     UNIFIED_SOURCES += [
-        "/third_party/angle/src/gpu_info_util/SystemInfo_libpci.cpp",
         "/third_party/angle/src/gpu_info_util/SystemInfo_linux.cpp",
         "/third_party/angle/src/gpu_info_util/SystemInfo_vulkan.cpp"
     ]

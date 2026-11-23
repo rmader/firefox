@@ -131,8 +131,7 @@ if CONFIG["OS_TARGET"] == "Linux":
 
     OS_LIBS += [
         "dl",
-        "drm",
-        "pci"
+        "drm"
     ]
 
 if CONFIG["OS_TARGET"] == "WINNT":

@@ -147,8 +147,7 @@ if CONFIG["OS_TARGET"] == "Linux":
 
     OS_LIBS += [
         "dl",
-        "drm",
-        "pci"
+        "drm"
     ]
 
 if CONFIG["TARGET_CPU"] == "aarch64":
