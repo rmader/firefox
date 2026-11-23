@@ -20,7 +20,7 @@
 // clang-format off
 #include <fcntl.h>
 #include <unistd.h>
-#include <xf86drm.h>
+//#include <xf86drm.h>
 // clang-format on
 #endif  // defined(ANGLE_HAS_LIBDRM)
 
@@ -258,12 +258,12 @@ egl::Error FunctionsEGL::initialize(EGLAttrib platformType, EGLNativeDisplayType
         mEGLDisplay = getPlatformDisplay(platformType, nativeDisplay);
     }
 #endif
-#if defined(ANGLE_HAS_LIBDRM)
+/*#if defined(ANGLE_HAS_LIBDRM)
     if (mEGLDisplay == EGL_NO_DISPLAY && (platformType != EGL_PLATFORM_GBM_KHR || !nativeDisplay))
     {
         mEGLDisplay = getPreferredDisplay(&majorVersion, &minorVersion);
     }
-#endif  // defined(ANGLE_HAS_LIBDRM)
+#endif  // defined(ANGLE_HAS_LIBDRM)*/
 
     if (mEGLDisplay == EGL_NO_DISPLAY)
     {
@@ -525,7 +525,7 @@ EGLDisplay FunctionsEGL::getNativeDisplay(int *major, int *minor)
     return EGL_NO_DISPLAY;
 }
 
-#if defined(ANGLE_HAS_LIBDRM)
+/*#if defined(ANGLE_HAS_LIBDRM)
 EGLDeviceEXT FunctionsEGL::getPreferredEGLDevice(const std::vector<EGLDeviceEXT> &devices)
 {
     // Only called after confirming we have the necessary extension.
@@ -620,7 +620,7 @@ EGLDisplay FunctionsEGL::getPreferredDisplay(int *major, int *minor)
 
     return EGL_NO_DISPLAY;
 }
-#endif  // defined(ANGLE_HAS_LIBDRM)
+#endif  // defined(ANGLE_HAS_LIBDRM)*/
 
 class FunctionsGLEGL : public FunctionsGL
 {
