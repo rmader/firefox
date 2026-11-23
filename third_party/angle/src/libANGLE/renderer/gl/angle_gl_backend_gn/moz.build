@@ -133,7 +133,6 @@ if CONFIG["OS_TARGET"] == "Android":
 if CONFIG["OS_TARGET"] == "Linux":
 
     DEFINES["ANGLE_ENABLE_GL_DESKTOP_BACKEND"] = True
-    DEFINES["ANGLE_HAS_LIBDRM"] = True
     DEFINES["ANGLE_IS_LINUX"] = True
     DEFINES["ANGLE_USE_VULKAN_DISPLAY"] = True
     DEFINES["ANGLE_VULKAN_DISPLAY_MODE_HEADLESS"] = True
@@ -146,8 +145,7 @@ if CONFIG["OS_TARGET"] == "Linux":
     DEFINES["_LARGEFILE_SOURCE"] = True
 
     OS_LIBS += [
-        "dl",
-        "drm"
+        "dl"
     ]
 
 if CONFIG["TARGET_CPU"] == "aarch64":
