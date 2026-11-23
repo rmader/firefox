@@ -11,11 +11,12 @@ declare_args() {
   # Controls whether the build should use the version of libdrm library shipped
   # with the system. In release builds of Chrome OS we use the system version.
   # Some Chromecast devices use this as well.
-  use_system_libdrm = is_chromeos_device
+  #use_system_libdrm = is_chromeos_device
+  use_system_libdrm = true
 }
 
 if (use_system_libdrm) {
-  assert(!is_linux, "System libdrm is not supported in linux")
+  #assert(!is_linux, "System libdrm is not supported in linux")
   pkg_config("libdrm_config") {
     packages = [ "libdrm" ]
   }
