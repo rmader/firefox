@@ -152,9 +152,3 @@ if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["TARGET_OS"] == "OSX":
     DIRS += [
         "/third_party/angle/angle_gl_enum_utils_gn"
     ]
-
-if CONFIG["MOZ_X11"] == "1" and CONFIG["OS_TARGET"] == "Linux":
-
-    DIRS += [
-        "/third_party/angle/src/third_party/libXNVCtrl/libXNVCtrl_gn"
-    ]

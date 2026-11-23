@@ -16,6 +16,7 @@ DEFINES["ANGLE_ENABLE_KEYEDMUTEX"] = True
 DEFINES["ANGLE_ENABLE_SHARE_CONTEXT_LOCK"] = "1"
 DEFINES["ANGLE_PLATFORM_EXPORT"] = ""
 DEFINES["ANGLE_SKIP_DXGI_1_2_CHECK"] = True
+DEFINES["EGL_NO_X11"] = True
 DEFINES["LIBANGLE_IMPLEMENTATION"] = True
 
 LOCAL_INCLUDES += [
@@ -162,7 +163,6 @@ if CONFIG["OS_TARGET"] == "Android":
     DEFINES["ANGLE_ENABLE_OPENGL"] = True
     DEFINES["ANGLE_ENABLE_VULKAN"] = True
     DEFINES["ANGLE_USE_ANDROID_TLS_SLOT"] = "1"
-    DEFINES["EGL_NO_X11"] = True
     DEFINES["HAVE_SYS_UIO_H"] = True
     DEFINES["_GNU_SOURCE"] = True
     DEFINES["__ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__"] = True
@@ -189,7 +189,6 @@ if CONFIG["OS_TARGET"] == "Darwin":
     ]
 
     DEFINES["ANGLE_ENABLE_METAL"] = True
-    DEFINES["EGL_NO_X11"] = True
     DEFINES["__STDC_CONSTANT_MACROS"] = True
     DEFINES["__STDC_FORMAT_MACROS"] = True
 
@@ -257,7 +256,6 @@ if CONFIG["OS_TARGET"] == "WINNT":
     DEFINES["ANGLE_IS_WIN"] = True
     DEFINES["ANGLE_PRELOADED_D3DCOMPILER_MODULE_NAMES"] = "{ \"d3dcompiler_47.dll\", \"d3dcompiler_46.dll\", \"d3dcompiler_43.dll\" }"
     DEFINES["CERT_CHAIN_PARA_HAS_EXTRA_FIELDS"] = True
-    DEFINES["EGL_NO_X11"] = True
     DEFINES["NOMINMAX"] = True
     DEFINES["NTDDI_VERSION"] = "0x0A000000"
     DEFINES["PSAPI_VERSION"] = "2"
@@ -292,17 +290,6 @@ if CONFIG["OS_TARGET"] == "WINNT":
 
     USE_LIBS += [
         "angle_d3d11_backend_gn"
-    ]
-
-if CONFIG["MOZ_X11"] == "1":
-
-    DEFINES["ANGLE_USE_X11"] = True
-
-    OS_LIBS += [
-        "X11",
-        "xcb",
-        "Xext",
-        "Xi"
     ]
 
 if CONFIG["TARGET_CPU"] == "aarch64":
@@ -348,10 +335,6 @@ if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["OS_TARGET"] == "Linux":
 if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["OS_TARGET"] == "WINNT":
 
     DEFINES["_HAS_ITERATOR_DEBUGGING"] = "0"
-
-if not CONFIG["MOZ_X11"] and CONFIG["OS_TARGET"] == "Linux":
-
-    DEFINES["EGL_NO_X11"] = True
 
 if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "aarch64":
 

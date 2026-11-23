@@ -21,6 +21,7 @@ DEFINES["ANGLE_SKIP_DXGI_1_2_CHECK"] = True
 DEFINES["ANGLE_USE_EGL_LOADER"] = True
 DEFINES["EGL_EGLEXT_PROTOTYPES"] = True
 DEFINES["EGL_EGL_PROTOTYPES"] = "1"
+DEFINES["EGL_NO_X11"] = True
 DEFINES["GL_GLES_PROTOTYPES"] = "1"
 DEFINES["GL_GLEXT_PROTOTYPES"] = True
 DEFINES["LIBEGL_IMPLEMENTATION"] = True
@@ -75,7 +76,6 @@ if CONFIG["OS_TARGET"] == "Android":
     DEFINES["ANGLE_VULKAN_SECONDARIES_EGL_LIBRARY_NAME"] = "\"libEGL_vulkan_secondaries_angle\""
     DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries_angle\""
     DEFINES["EGLAPI"] = "__attribute__((visibility(\"default\")))"
-    DEFINES["EGL_NO_X11"] = True
     DEFINES["HAVE_SYS_UIO_H"] = True
     DEFINES["_GNU_SOURCE"] = True
     DEFINES["__ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__"] = True
@@ -104,7 +104,6 @@ if CONFIG["OS_TARGET"] == "Darwin":
     DEFINES["ANGLE_VULKAN_SECONDARIES_EGL_LIBRARY_NAME"] = "\"libEGL_vulkan_secondaries\""
     DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries\""
     DEFINES["EGLAPI"] = "__attribute__((visibility(\"default\")))"
-    DEFINES["EGL_NO_X11"] = True
     DEFINES["__STDC_CONSTANT_MACROS"] = True
     DEFINES["__STDC_FORMAT_MACROS"] = True
 
@@ -162,7 +161,6 @@ if CONFIG["OS_TARGET"] == "WINNT":
     DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries\""
     DEFINES["CERT_CHAIN_PARA_HAS_EXTRA_FIELDS"] = True
     DEFINES["EGLAPI"] = ""
-    DEFINES["EGL_NO_X11"] = True
     DEFINES["NOMINMAX"] = True
     DEFINES["NTDDI_VERSION"] = "0x0A000000"
     DEFINES["PSAPI_VERSION"] = "2"
@@ -226,10 +224,6 @@ if CONFIG["OS_TARGET"] == "WINNT":
         "angle_version_gn"
     ]
 
-if CONFIG["MOZ_X11"] == "1":
-
-    DEFINES["ANGLE_USE_X11"] = True
-
 if CONFIG["TARGET_CPU"] == "aarch64":
 
     DEFINES["__ARM_NEON__"] = "1"
@@ -273,10 +267,6 @@ if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["OS_TARGET"] == "Linux":
 if CONFIG["MOZ_DEBUG"] == "1" and CONFIG["OS_TARGET"] == "WINNT":
 
     DEFINES["_HAS_ITERATOR_DEBUGGING"] = "0"
-
-if not CONFIG["MOZ_X11"] and CONFIG["OS_TARGET"] == "Linux":
-
-    DEFINES["EGL_NO_X11"] = True
 
 if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "aarch64":
 

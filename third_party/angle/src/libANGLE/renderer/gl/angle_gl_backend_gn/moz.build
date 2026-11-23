@@ -17,6 +17,7 @@ DEFINES["ANGLE_ENABLE_OPENGL"] = True
 DEFINES["ANGLE_ENABLE_SHARE_CONTEXT_LOCK"] = "1"
 DEFINES["ANGLE_PLATFORM_EXPORT"] = ""
 DEFINES["ANGLE_SKIP_DXGI_1_2_CHECK"] = True
+DEFINES["EGL_NO_X11"] = True
 DEFINES["LIBANGLE_IMPLEMENTATION"] = True
 DEFINES["__STDC_CONSTANT_MACROS"] = True
 DEFINES["__STDC_FORMAT_MACROS"] = True
@@ -110,7 +111,6 @@ if CONFIG["OS_TARGET"] == "Android":
     DEFINES["ANGLE_ENABLE_GLOBAL_MUTEX_RECURSION"] = "1"
     DEFINES["ANGLE_ENABLE_VULKAN"] = True
     DEFINES["ANGLE_USE_ANDROID_TLS_SLOT"] = "1"
-    DEFINES["EGL_NO_X11"] = True
     DEFINES["HAVE_SYS_UIO_H"] = True
     DEFINES["VK_USE_PLATFORM_ANDROID_KHR"] = True
     DEFINES["_GNU_SOURCE"] = True
@@ -151,28 +151,6 @@ if CONFIG["OS_TARGET"] == "Linux":
         "pci"
     ]
 
-if CONFIG["MOZ_X11"] == "1":
-
-    DEFINES["ANGLE_USE_X11"] = True
-
-    OS_LIBS += [
-        "X11",
-        "xcb",
-        "Xext",
-        "Xi"
-    ]
-
-    UNIFIED_SOURCES += [
-        "/third_party/angle/src/libANGLE/renderer/gl/glx/ContextGLX.cpp",
-        "/third_party/angle/src/libANGLE/renderer/gl/glx/DisplayGLX.cpp",
-        "/third_party/angle/src/libANGLE/renderer/gl/glx/FunctionsGLX.cpp",
-        "/third_party/angle/src/libANGLE/renderer/gl/glx/glx_utils.cpp",
-        "/third_party/angle/src/libANGLE/renderer/gl/glx/PbufferSurfaceGLX.cpp",
-        "/third_party/angle/src/libANGLE/renderer/gl/glx/PixmapSurfaceGLX.cpp",
-        "/third_party/angle/src/libANGLE/renderer/gl/glx/RendererGLX.cpp",
-        "/third_party/angle/src/libANGLE/renderer/gl/glx/WindowSurfaceGLX.cpp"
-    ]
-
 if CONFIG["TARGET_CPU"] == "aarch64":
 
     DEFINES["__ARM_NEON__"] = "1"
@@ -200,10 +178,6 @@ if CONFIG["TARGET_CPU"] == "mips64":
     ]
 
     DEFINES["_GNU_SOURCE"] = True
-
-if not CONFIG["MOZ_X11"] and CONFIG["OS_TARGET"] == "Linux":
-
-    DEFINES["EGL_NO_X11"] = True
 
 if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"] == "aarch64":
 
