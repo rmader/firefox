@@ -122,8 +122,7 @@ void BufferSurface::ReleaseTextures() {
 }
 
 bool BufferSurface::SupportsDirectComposition() {
-  return GdkIsWaylandDisplay() &&
-         GetGlobalDMABufFormats()->SupportsDirectComposition(GetFormat());
+  return GetGlobalDMABufFormats()->SupportsDirectComposition(GetFormat());
 }
 
 bool BufferSurface::HasAlpha() const {
