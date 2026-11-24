@@ -539,6 +539,7 @@ EGLAttrib GetDeviceTypeFromEnvironment()
 
 EGLAttrib GetPlatformTypeFromEnvironment()
 {
+    return EGL_PLATFORM_SURFACELESS_MESA;
 #if defined(ANGLE_USE_X11) || defined(ANGLE_USE_WAYLAND)
     // Reached when the caller supplied no native platform type, as EGL 1.4
     // eglGetDisplay() cannot. Delegate to the shared policy so this implicit
