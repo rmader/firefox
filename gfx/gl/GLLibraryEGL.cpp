@@ -806,6 +806,8 @@ bool GLLibraryEGL::Init(LibraryType type, nsACString* const out_failureId) {
 
   // Check the ANGLE support the system has
   mIsANGLE = IsExtensionSupported(EGLLibExtension::ANGLE_platform_angle);
+  
+  printf_stderr("%s useANGLE %d mIsANGLE %d\n", __func__, useANGLE, mIsANGLE);
 
 #if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
   if (useANGLE && !mIsANGLE) {
@@ -1111,6 +1113,8 @@ std::shared_ptr<EglDisplay> GLLibraryEGL::CreateDisplayLocked(
     const EGLCreateDisplayFlags& aFlags, nsACString* const out_failureId,
     const StaticMutexAutoLock& aProofOfLock) {
   std::shared_ptr<EglDisplay> ret;
+  
+  printf_stderr("%s\n", __func__);
 
   MOZ_ASSERT(!(aFlags.mForceAccel && aFlags.mForceSoftware),
              "Cannot force accelerated and software display");
@@ -1162,6 +1166,8 @@ std::shared_ptr<EglDisplay> GLLibraryEGL::CreateDisplayLocked(
       }
     }
   } else if (IsANGLE()) {
+    printf_stderr("%s IsAngle\n", __func__);
+  
     MOZ_ASSERT(!aFlags.mForceSoftware,
                "Software rendering not supported by EGL on this platform");
     if (!aFlags.mForceSoftware) {
@@ -1202,6 +1208,8 @@ std::shared_ptr<EglDisplay> GLLibraryEGL::CreateDisplayLocked(
   } else {
     void* nativeDisplay = EGL_DEFAULT_DISPLAY;
 #ifdef MOZ_WIDGET_GTK
+    printf_stderr("%s else / gtk\n", __func__);
+
     if (!ret && (!gfx::gfxVars::WebglUseHardware() || aFlags.mForceSoftware)) {
       // Initialize a swrast egl device such as llvmpipe
       ret = GetAndInitSoftwareDisplay(*this, aProofOfLock);
@@ -1215,6 +1223,7 @@ std::shared_ptr<EglDisplay> GLLibraryEGL::CreateDisplayLocked(
     }
 #  ifdef MOZ_WAYLAND
     else if (!ret && widget::GdkIsWaylandDisplay() && !aFlags.mForceSoftware) {
+      printf_stderr("%s Wayland\n", __func__);
       // Wayland does not support EGL_DEFAULT_DISPLAY
       nativeDisplay = widget::WaylandDisplayGetWLDisplay();
       if (!nativeDisplay) {

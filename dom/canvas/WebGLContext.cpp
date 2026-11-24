@@ -402,6 +402,8 @@ bool WebGLContext::CreateAndInitGL(
 
   const auto newGL = [&]() -> RefPtr<gl::GLContext> {
     if (tryNativeGL) {
+      printf_stderr("%s tryNativeGL\n", __func__);
+    
       if (useEGL)
         return fnCreate(&gl::GLContextProviderEGL::CreateHeadless, "useEGL");
 
@@ -411,6 +413,7 @@ bool WebGLContext::CreateAndInitGL(
     }
 
     if (tryANGLE) {
+      printf_stderr("%s tryANGLE\n", __func__);
       return fnCreate(&gl::GLContextProviderEGL::CreateHeadless, "tryANGLE");
     }
     return nullptr;
