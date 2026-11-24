@@ -46,7 +46,7 @@ class GL_CONTEXT_PROVIDER_NAME {
   static already_AddRefed<GLContext> CreateHeadless(
       const GLContextCreateDesc&, nsACString* const out_failureId);
 
-#if defined(MOZ_WIDGET_ANDROID) && defined(GL_CONTEXT_PROVIDER_EGL)
+#if (defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)) && defined(GL_CONTEXT_PROVIDER_EGL)
   // Create a compositor context without a window using a dedicated ANGLE
   // WebRender display.
   static already_AddRefed<GLContext> CreateForCompositorANGLE(

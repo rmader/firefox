@@ -169,7 +169,7 @@ class GLLibraryEGL final {
   // Return the default implementation, which may be bundled ANGLE.
   // On Android, fall back to system EGL/GLES if ANGLE initialization fails.
   static RefPtr<GLLibraryEGL> Get(nsACString* const out_failureId);
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
   // Return system EGL/GLES regardless of the default
   // implementation.
   static RefPtr<GLLibraryEGL> GetNative(nsACString* const out_failureId);
@@ -205,7 +205,7 @@ class GLLibraryEGL final {
   std::shared_ptr<EglDisplay> CreateDisplay(ID3D11Device*);
   std::shared_ptr<EglDisplay> CreateDisplayForMetalDevice(
       uint64_t aMetalDeviceRegistryID);
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
   std::shared_ptr<EglDisplay> CreateDisplayForWebRenderAndroidGLES(
       nsACString* const out_failureId);
 #endif

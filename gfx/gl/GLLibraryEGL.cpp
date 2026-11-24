@@ -382,7 +382,7 @@ std::shared_ptr<EglDisplay> GLLibraryEGL::CreateDisplayForMetalDevice(
   return EglDisplay::Create(*this, display, false, lock);
 }  // namespace gl
 
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
 std::shared_ptr<EglDisplay> GLLibraryEGL::CreateDisplayForWebRenderAndroidGLES(
     nsACString* const out_failureId) {
   StaticMutexAutoLock lock(sMutex);
@@ -550,7 +550,7 @@ RefPtr<GLLibraryEGL> GLLibraryEGL::Get(nsACString* const out_failureId) {
   return GetImpl(LibraryType::Default, out_failureId);
 }
 
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
 /* static */
 RefPtr<GLLibraryEGL> GLLibraryEGL::GetNative(nsACString* const out_failureId) {
   return GetImpl(LibraryType::Native, out_failureId);
@@ -587,7 +587,7 @@ RefPtr<GLLibraryEGL> GLLibraryEGL::GetImpl(LibraryType type,
     return sInstance;
   }
 
-#if defined(MOZ_WIDGET_ANDROID) or defined(MOZ_WIDGET_GTK)
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
   if (type == LibraryType::Native || !gfx::gfxVars::UseWebRenderANGLE()) {
     auto lib = ensureInitialized(sNativeInstance, LibraryType::Native);
     if (type == LibraryType::Default) {
@@ -604,7 +604,7 @@ RefPtr<GLLibraryEGL> GLLibraryEGL::GetImpl(LibraryType type,
     return sInstance;
   }
 
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
   gfxCriticalNote << "Failed to initialize bundled ANGLE; using native EGL: "
                   << nsCString(*out_failureId).get();
 
@@ -807,7 +807,7 @@ bool GLLibraryEGL::Init(LibraryType type, nsACString* const out_failureId) {
   // Check the ANGLE support the system has
   mIsANGLE = IsExtensionSupported(EGLLibExtension::ANGLE_platform_angle);
 
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
   if (useANGLE && !mIsANGLE) {
     *out_failureId = "FEATURE_FAILURE_EGL_NOT_ANGLE"_ns;
     return false;
@@ -1167,7 +1167,7 @@ std::shared_ptr<EglDisplay> GLLibraryEGL::CreateDisplayLocked(
     if (!aFlags.mForceSoftware) {
       AutoTArray<EGLAttrib, 5> attrib_list;
 
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
       // On Android, ANGLE may be compiled with multiple backends, so
       // explicitly request the GLES backend.
       if (!IsExtensionSupported(EGLLibExtension::ANGLE_platform_angle_opengl)) {

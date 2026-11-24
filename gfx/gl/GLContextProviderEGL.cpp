@@ -1014,7 +1014,7 @@ static bool CreateConfigScreen(EglDisplay& egl, EGLConfig* const aConfig,
   return false;
 }
 
-#ifdef MOZ_WIDGET_ANDROID
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
 /* static */
 already_AddRefed<GLContext> GLContextProviderEGL::CreateForCompositorANGLE(
     bool aHardwareWebRender, nsACString* const out_failureId) {
