@@ -199,7 +199,7 @@ declare_args() {
 
   # Default to using "_angle" suffix on Android
   if (!defined(angle_libs_suffix)) {
-    if (is_android) {
+    if (is_android || is_linux) {
       angle_libs_suffix = "_angle"
     } else {
       angle_libs_suffix = ""

@@ -116,14 +116,14 @@ if CONFIG["OS_TARGET"] == "Darwin":
 
 if CONFIG["OS_TARGET"] == "Linux":
 
-    DEFINES["ANGLE_DISPATCH_LIBRARY"] = "\"libGLESv2\""
-    DEFINES["ANGLE_EGL_LIBRARY_NAME"] = "\"libEGL\""
-    DEFINES["ANGLE_GLESV2_LIBRARY_NAME"] = "\"libGLESv2\""
+    DEFINES["ANGLE_DISPATCH_LIBRARY"] = "\"libGLESv2_angle\""
+    DEFINES["ANGLE_EGL_LIBRARY_NAME"] = "\"libEGL_angle\""
+    DEFINES["ANGLE_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_angle\""
     DEFINES["ANGLE_IS_LINUX"] = True
     DEFINES["ANGLE_USE_VULKAN_DISPLAY"] = True
     DEFINES["ANGLE_VULKAN_DISPLAY_MODE_HEADLESS"] = True
-    DEFINES["ANGLE_VULKAN_SECONDARIES_EGL_LIBRARY_NAME"] = "\"libEGL_vulkan_secondaries\""
-    DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries\""
+    DEFINES["ANGLE_VULKAN_SECONDARIES_EGL_LIBRARY_NAME"] = "\"libEGL_vulkan_secondaries_angle\""
+    DEFINES["ANGLE_VULKAN_SECONDARIES_GLESV2_LIBRARY_NAME"] = "\"libGLESv2_vulkan_secondaries_angle\""
     DEFINES["EGLAPI"] = "__attribute__((visibility(\"default\")))"
     DEFINES["USE_AURA"] = "1"
     DEFINES["USE_GLIB"] = "1"
@@ -141,7 +141,7 @@ if CONFIG["OS_TARGET"] == "Linux":
         "rt"
     ]
 
-    SHARED_LIBRARY_NAME = "EGL"
+    SHARED_LIBRARY_NAME = "EGL_angle"
 
 
 if CONFIG["OS_TARGET"] == "WINNT":

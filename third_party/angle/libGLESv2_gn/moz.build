@@ -172,7 +172,7 @@ if CONFIG["OS_TARGET"] == "Linux":
         "rt"
     ]
 
-    SHARED_LIBRARY_NAME = "GLESv2"
+    SHARED_LIBRARY_NAME = "GLESv2_angle"
 
 
 if CONFIG["OS_TARGET"] == "WINNT":
