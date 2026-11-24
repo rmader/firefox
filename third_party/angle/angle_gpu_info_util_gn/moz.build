@@ -128,7 +128,6 @@ if CONFIG["OS_TARGET"] == "Linux":
     DEFINES["ANGLE_IS_LINUX"] = True
     DEFINES["ANGLE_USE_CUSTOM_LIBVULKAN"] = True
     DEFINES["ANGLE_USE_VULKAN_DISPLAY"] = True
-    DEFINES["ANGLE_USE_WAYLAND"] = True
     DEFINES["ANGLE_VULKAN_DISPLAY_MODE_HEADLESS"] = True
     DEFINES["USE_AURA"] = "1"
     DEFINES["USE_GLIB"] = "1"
@@ -146,9 +145,7 @@ if CONFIG["OS_TARGET"] == "Linux":
     ]
 
     OS_LIBS += [
-        "dl",
-        "wayland-client",
-        "wayland-egl"
+        "dl"
     ]
 
     UNIFIED_SOURCES += [

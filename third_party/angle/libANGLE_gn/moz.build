@@ -113,7 +113,6 @@ if CONFIG["OS_TARGET"] == "Linux":
     DEFINES["ANGLE_ENABLE_OPENGL"] = True
     DEFINES["ANGLE_IS_LINUX"] = True
     DEFINES["ANGLE_USE_VULKAN_DISPLAY"] = True
-    DEFINES["ANGLE_USE_WAYLAND"] = True
     DEFINES["ANGLE_VULKAN_DISPLAY_MODE_HEADLESS"] = True
     DEFINES["USE_AURA"] = "1"
     DEFINES["USE_GLIB"] = "1"
@@ -130,9 +129,7 @@ if CONFIG["OS_TARGET"] == "Linux":
     ]
 
     OS_LIBS += [
-        "dl",
-        "wayland-client",
-        "wayland-egl"
+        "dl"
     ]
 
 if CONFIG["OS_TARGET"] == "WINNT":
