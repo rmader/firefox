@@ -149,6 +149,7 @@ if CONFIG["OS_TARGET"] == "Linux":
     DEFINES["ANGLE_ENABLE_OPENGL"] = True
     DEFINES["ANGLE_IS_LINUX"] = True
     DEFINES["ANGLE_USE_VULKAN_DISPLAY"] = True
+    DEFINES["ANGLE_USE_WAYLAND"] = True
     DEFINES["ANGLE_VULKAN_DISPLAY_MODE_HEADLESS"] = True
     DEFINES["GL_API"] = "__attribute__((visibility(\"default\")))"
     DEFINES["GL_APICALL"] = "__attribute__((visibility(\"default\")))"
@@ -169,7 +170,9 @@ if CONFIG["OS_TARGET"] == "Linux":
     OS_LIBS += [
         "dl",
         "pthread",
-        "rt"
+        "rt",
+        "wayland-client",
+        "wayland-egl"
     ]
 
     SHARED_LIBRARY_NAME = "GLESv2_angle"

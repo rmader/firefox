@@ -27,7 +27,6 @@
       "angle_enable_wgpu": false,
       "angle_has_frame_capture": false,
       "angle_standalone": false,
-      "angle_use_wayland": false,
       "enable_rust": false,
       "is_component_build": false,
       "use_custom_libcxx": false,
@@ -47,7 +46,9 @@
     "linux": {
       "angle_enable_gl": true,
       "angle_build_vulkan_system_info": true,
-      "angle_shared_libvulkan": false
+      "angle_shared_libvulkan": false,
+      "angle_use_wayland": true,
+      "angle_use_x11": false
     },
     "win": {
       "angle_enable_d3d11": true,
