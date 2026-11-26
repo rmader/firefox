@@ -502,7 +502,9 @@ BufferTextureHost::BufferTextureHost(const BufferDescriptor& aDesc,
 
   mUseExternalTextures = false;
 #ifdef MOZ_WAYLAND
-  if (widget::GdkIsWaylandDisplay() && gfx::gfxVars::UseWebRenderCompositor()) {
+  if (XRE_IsGPUProcess()) {
+    mUseExternalTextures = true;
+  } else if (widget::GdkIsWaylandDisplay() && gfx::gfxVars::UseWebRenderCompositor()) {
     RefPtr<SHMBufSurface> surface = SHMBufSurface::Create(nullptr, aDesc);
     mUseExternalTextures = surface->SupportsDirectComposition();
   }
