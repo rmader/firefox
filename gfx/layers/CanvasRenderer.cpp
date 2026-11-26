@@ -112,7 +112,7 @@ TextureType TexTypeForWebgl(KnowsCompositor* const knowsCompositor,
 
 #ifdef MOZ_WIDGET_GTK
   if (kIsLinux) {
-    if (!knowsCompositor->UsingSoftwareWebRender() &&
+    if (/*!knowsCompositor->UsingSoftwareWebRender()*/ true &&
         widget::DMABufDevice::IsDMABufWebGLEnabled()) {
       return TextureType::DMABUF;
     }
