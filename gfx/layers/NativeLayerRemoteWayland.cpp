@@ -13,6 +13,7 @@
 #include "mozilla/webrender/RenderThread.h"
 #include "mozilla/widget/DMABufSurface.h"
 #include "mozilla/widget/SHMBufSurface.h"
+#include "mozilla/widget/UdmabufSurface.h"
 #include "mozilla/widget/WaylandBuffer.h"
 
 namespace mozilla {
@@ -230,6 +231,21 @@ void NativeLayerRemoteWayland::FlushDirtyLayerInfoToCommandQueue() {
     RefPtr<widget::WaylandBuffer> buffer = FrontBuffer();
     if (DMABufSurface* surface =
             buffer ? buffer->GetDMABufSurface() : nullptr) {
+      SurfaceDescriptor surfaceDesc;
+      if (surface->Serialize(surfaceDesc)) {
+        // Hold a global reference while the descriptor is in flight, so the
+        // buffer isn't recycled before the parent process imports it. The
+        // parent releases this reference once it has imported the surface.
+        if (surface->GetGlobalRefCountFd()) {
+          surface->GlobalRefAdd();
+        }
+        desc = Some(surfaceDesc.get_SurfaceDescriptorDMABuf());
+      } else {
+        gfxCriticalNoteOnce << "Failed to serialize DMABufSurface.";
+      }
+    }
+    if (UdmabufSurface* surface =
+            buffer ? buffer->GetUdmabufSurface() : nullptr) {
       SurfaceDescriptor surfaceDesc;
       if (surface->Serialize(surfaceDesc)) {
         // Hold a global reference while the descriptor is in flight, so the

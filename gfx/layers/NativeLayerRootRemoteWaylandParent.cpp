@@ -8,6 +8,7 @@
 #include "mozilla/gfx/Logging.h"
 #include "mozilla/layers/NativeLayerWayland.h"
 #include "mozilla/widget/DMABufSurface.h"
+#include "mozilla/widget/UdmabufSurface.h"
 #include "mozilla/widget/WaylandBuffer.h"
 #include "xpcpublic.h"
 
@@ -215,6 +216,10 @@ void NativeLayerRootRemoteWaylandParent::HandleChangedSurface(
   if (aDesc) {
     if (RefPtr<DMABufSurface> surface =
             DMABufSurface::CreateDMABufSurface(SurfaceDescriptor(*aDesc))) {
+      surface->GlobalRefRelease();
+      buffer = widget::WaylandBuffer::Create(surface);
+    } else if (RefPtr<UdmabufSurface> surface =
+            UdmabufSurface::CreateUdmabufSurface(SurfaceDescriptor(*aDesc))) {
       surface->GlobalRefRelease();
       buffer = widget::WaylandBuffer::Create(surface);
     } else {

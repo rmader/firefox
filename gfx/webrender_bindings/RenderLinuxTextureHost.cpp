@@ -15,7 +15,7 @@ namespace mozilla::wr {
 // Derived from
 RenderLinuxTextureHost::RenderLinuxTextureHost(BufferSurface* aSurface)
     : mSurface(aSurface) {
-  if (!aSurface->GetAsDMABufSurface()) {
+  if (!aSurface->GetAsDMABufSurface() && !aSurface->GetAsUdmabufSurface()) {
     NS_WARNING("Direct import is used for DMABufSurfaces only!");
     mSurface = nullptr;
   }
