@@ -750,6 +750,12 @@ set_config("MOZ_WAYLAND", depends_if(wayland_headers)(lambda _: True))
 set_define("MOZ_WAYLAND", depends_if(wayland_headers)(lambda _: True))
 
 
+# Udmabuf support
+# ================================================================
+set_config("MOZ_UDMABUF", True, when=toolkit_gtk)
+set_define("MOZ_UDMABUF", True, when=toolkit_gtk)
+
+
 # Hardware-accelerated video decode (VAAPI, Vulkan, V4L2) on Linux
 # ================================================================
 set_config("MOZ_ENABLE_VAAPI", True, when=toolkit_gtk)

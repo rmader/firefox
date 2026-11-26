@@ -55,6 +55,7 @@ class DMABufSurface;
 class DMABufSurfaceRGBA;
 class DMABufSurfaceYUV;
 class SHMBufSurface;
+class UdmabufSurface;
 
 class BufferSurface {
  public:
@@ -75,6 +76,7 @@ class BufferSurface {
   virtual DMABufSurfaceRGBA* GetAsDMABufSurfaceRGBA() { return nullptr; }
   virtual DMABufSurfaceYUV* GetAsDMABufSurfaceYUV() { return nullptr; }
   virtual SHMBufSurface* GetAsSHMBufSurface() { return nullptr; }
+  virtual UdmabufSurface* GetAsUdmabufSurface() { return nullptr; }
 
   // WidthAligned/HeightAligned is size of buffer while
   // Width/Height is size of actual content.

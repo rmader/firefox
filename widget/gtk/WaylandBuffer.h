@@ -50,6 +50,9 @@ class WaylandBuffer {
   DMABufSurface* GetDMABufSurface() {
     return mBufferSurface->GetAsDMABufSurface();
   }
+  UdmabufSurface* GetUdmabufSurface() {
+    return mBufferSurface->GetAsUdmabufSurface();
+  }
 
   LayoutDeviceIntSize GetSize() const { return mSize; }
   bool IsMatchingSize(const LayoutDeviceIntSize& aSize) const {

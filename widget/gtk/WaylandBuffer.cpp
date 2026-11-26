@@ -10,6 +10,7 @@
 #include <sys/mman.h>
 
 #include "SHMBufSurface.h"
+#include "UdmabufSurface.h"
 #include "WaylandSurface.h"
 #include "WaylandSurfaceLock.h"
 #include "gfx2DGlue.h"
@@ -179,6 +180,16 @@ already_AddRefed<WaylandBuffer> WaylandBuffer::CreateMappableDMABuf(
 
   LOGWAYLAND("WaylandBuffer::CreateMappableDMABuf() [%p] [%d x %d]",
              (void*)buffer, aSize.width, aSize.height);
+
+  fprintf(stderr, "%s\n", __func__);
+
+  buffer->mBufferSurface = UdmabufSurfaceRGBA::CreateUdmabufSurface(
+      aSize.width, aSize.height, aFormat);
+  if (buffer->mBufferSurface) {
+    LOGWAYLAND("  created [%p]\n", buffer.get());
+    return buffer.forget();
+  }
+  fprintf(stderr, "%s udmabuf failed\n", __func__);
 
   buffer->mBufferSurface = DMABufSurfaceRGBA::CreateDMABufSurface(
       nullptr, aSize.width, aSize.height, DMABUF_ALPHA | DMABUF_CPU_ACCESS,
