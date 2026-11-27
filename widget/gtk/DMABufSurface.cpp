@@ -265,11 +265,11 @@ bool DMABufSurface::UseDmaBufGL(GLContext* aGLContext) {
   }
 
   // dma-buf is only used with hardware GL rendering.
-  if (gfx::gfxVars::UseSoftwareWebRender()) {
+  /*if (gfx::gfxVars::UseSoftwareWebRender()) {
     gfxCriticalNote << "DMABufSurface::UseDmaBufGL(): refusing dma-buf with "
                        "software rendering.";
     return false;
-  }
+  }*/
 
   // Checked per context (not cached): mGL and the snapshot context can differ.
   if (!aGLContext->IsExtensionSupported(gl::GLContext::OES_EGL_image)) {
